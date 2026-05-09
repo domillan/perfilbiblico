@@ -515,20 +515,19 @@
                 
                 const btn = document.createElement('button');
                 btn.className = 'collapse-btn';
-                if (foiLida) btn.classList.add('opened-once');
+                // Mantém a borda azul se a dica foi usada na rodada
+                if (foiLida) btn.classList.add('opened-once'); 
                 
-                btn.innerHTML = `<span class="dica-label">Dica ${i + 1}</span> <span class="icon">▼</span>`;
+                // O ícone começa como '▲' porque a dica já vai iniciar aberta
+                btn.innerHTML = `<span class="dica-label">Dica ${i + 1}</span> <span class="icon">▲</span>`;
                 
                 const content = document.createElement('div');
-                content.className = 'collapse-content';
+                // Adiciona a classe 'show' direto na criação para iniciar aberto
+                content.className = 'collapse-content show';
                 content.id = `hd-dica-content-${i}`;
                 content.innerText = dica;
 
-                if (foiLida) {
-                    content.classList.add('show');
-                    btn.querySelector('.icon').innerText = '▲';
-                }
-
+                // Permite fechar a dica se o usuário quiser esconder
                 btn.onclick = () => {
                     content.classList.toggle('show');
                     btn.querySelector('.icon').innerText = content.classList.contains('show') ? '▲' : '▼';
