@@ -352,6 +352,10 @@
             }
 
             itemAtual = itensDisponiveis.pop();
+            
+            // Embaralha as dicas do item atual para a rodada
+            embaralhar(itemAtual.dicas);
+            
             dicasAtualmenteVisiveis = 0;
             dicasAbertasIndices.clear();
 
