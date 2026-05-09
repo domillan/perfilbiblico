@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo estilo Perfil</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --bg: #0f172a; 
+            --card-bg: #1e293b; 
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --opened-bg: #1e293b;
+            --opened-border: #3b82f6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 1rem 1rem 120px 1rem; 
+        }
+
+        /* Layout centralizado em uma coluna para dar mais espaço no PC */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1, h2, h3 { color: #fff; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: #0f172a;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* Collapses */
+        .collapse-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background: #334155;
+            color: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapse-btn:hover { background: #475569; }
+        
+        .collapse-btn.opened-once {
+            border-left: 4px solid var(--opened-border);
+            background: #1e293b;
+        }
+
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            background: #0f172a;
+            color: #cbd5e1;
+            border-radius: 0 0 8px 8px;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+            opacity: 0;
+            border: 1px solid transparent;
+        }
+
+        .collapse-content.show {
+            max-height: 200px;
+            padding: 1.25rem 1rem;
+            border-color: var(--border);
+            border-top: none;
+            opacity: 1;
+            overflow-y: auto;
+        }
+
+        .resposta-container { margin-bottom: 2rem; }
+        .resposta-container .collapse-btn {
+            background: #fbbf24;
+            border-color: #f59e0b;
+            color: #78350f;
+            font-weight: bold;
+        }
+        .resposta-container .collapse-btn:hover { background: #f59e0b; }
+        .resposta-container .collapse-content { background: #fffbeb; color: #92400e; font-size: 1.25rem; font-weight: bold; text-align: center; }
+
+        /* Botões Fixos sempre visíveis */
+        .fixed-actions {
+            position: sticky;
+            bottom: 0;
+            background: var(--card-bg);
+            padding: 1.25rem;
+            margin: 1.5rem -1.5rem -1.5rem -1.5rem;
+            border-top: 1px solid var(--border);
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .fixed-actions {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+                padding: 1rem;
+            }
+        }
+
+        button.action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            transition: transform 0.1s, filter 0.2s, opacity 0.2s;
+            flex: 1;
+            max-width: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        button.action-btn:active:not(:disabled) { transform: scale(0.97); }
+
+        button.action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+        }
+
+        .btn-success { background: var(--success); }
+        .btn-success:hover:not(:disabled) { background: var(--success-hover); }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover:not(:disabled) { background: var(--danger-hover); }
+        .btn-secondary { background: var(--border); color: #fff; }
+        .btn-secondary:hover:not(:disabled) { background: #475569; }
+        
+        .hidden { display: none !important; }
+
+        /* Histórico no final da página */
+        #historico-section {
+            margin-top: 1rem;
+        }
+        .historico-list { list-style: none; margin-top: 1rem; }
+        .historico-list li {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .historico-list li:hover { background: #1e293b; }
+        
+        .badge {
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Qual é a Palavra?</h1>
+            <button class="action-btn btn-danger" style="font-size: 0.9rem; max-width: max-content;" onclick="reiniciarJogo()">↻ Reiniciar Tudo</button>
+        </header>
+
+        <main class="card" id="game-board">
+            <div id="loading">Carregando itens.json...</div>
+            
+            <div id="game-content" class="hidden">
+                <div class="resposta-container">
+                    <button class="collapse-btn" onclick="toggleResposta()">Ver resposta <span id="resp-icon">▼</span></button>
+                    <div id="resposta-content" class="collapse-content"></div>
+                </div>
+
+                <div class="meta-info">
+                    <span id="categoria-display">Categoria: </span>
+                    <span id="dificuldade-display">Dificuldade: </span>
+                </div>
+
+                <h3 style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    Dicas
+                    <span class="badge" style="background: var(--primary);">Dicas abertas: <span id="dicas-contador">0</span></span>
+                </h3>
+                
+                <div id="dicas-container" style="margin-bottom: 2rem;">
+                    </div>
+
+                <div class="fixed-actions">
+                    <button id="btn-acertou" class="action-btn btn-success" onclick="registrarAcerto()" disabled>✅ Acertou!</button>
+                    <button id="btn-errou" class="action-btn btn-danger" onclick="registrarErro()" disabled>❌ Errou / Pular</button>
+                </div>
+            </div>
+
+            <div id="history-detail" class="hidden">
+                <button class="action-btn btn-secondary" style="font-size: 0.9rem; max-width: max-content; margin-bottom: 1.5rem;" onclick="voltarAoJogo()">⬅ Voltar ao jogo</button>
+                
+                <h2 id="hd-palavra" style="color: #fbbf24; text-align: center; font-size: 2rem; margin-bottom: 0.5rem;"></h2>
+                <div class="meta-info" style="justify-content: center; margin-bottom: 2rem;">
+                    <span id="hd-meta"></span>
+                </div>
+
+                <h3 style="margin-bottom: 1rem;">Dicas da rodada:</h3>
+                <div id="hd-dicas-container" style="margin-bottom: 2rem;">
+                    </div>
+            </div>
+
+            <div id="end-game" class="hidden">
+                <h2 style="text-align: center; color: var(--success); font-size: 2rem; margin-bottom: 1rem;">Fim de Jogo!</h2>
+                <p style="text-align: center;">Você jogou todas as palavras disponíveis nesta sessão.</p>
+            </div>
+        </main>
+
+        <section class="card" id="historico-section">
+            <h2>Histórico</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Clique em uma palavra para rever.</p>
+            <ul class="historico-list" id="historico-ul">
+                </ul>
+        </section>
+    </div>
+
+    <script>
+        let todosItens = [];
+        let itensDisponiveis = [];
+        let itemAtual = null;
+        let historico = [];
+        let jogoFinalizado = false;
+
+        // Variáveis de controle da rodada atual
+        let dicasAtualmenteVisiveis = 0; 
+        let dicasAbertasIndices = new Set(); 
+
+        async function iniciar() {
+            try {
+                const response = await fetch('itens.json');
+                if (!response.ok) throw new Error("Erro no fetch do JSON");
+                todosItens = await response.json();
+                
+                carregarSessao();
+                filtrarEEmbaralharItens();
+                atualizarUIHistorico();
+                
+                if (itensDisponiveis.length > 0) {
+                    carregarProxima();
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('game-content').classList.remove('hidden');
+                } else {
+                    mostrarFimDeJogo();
+                }
+            } catch (error) {
+                document.getElementById('loading').innerText = "Erro ao carregar itens.json. Certifique-se de que o arquivo está na mesma pasta e você está utilizando um servidor local (ex: Live Server).";
+                console.error(error);
+            }
+        }
+
+        function carregarSessao() {
+            const sessionData = sessionStorage.getItem('jogoPerfilHistorico');
+            if (sessionData) historico = JSON.parse(sessionData);
+        }
+
+        function salvarSessao() {
+            sessionStorage.setItem('jogoPerfilHistorico', JSON.stringify(historico));
+        }
+
+        function embaralhar(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function filtrarEEmbaralharItens() {
+            const idsJogados = historico.map(h => h.id);
+            itensDisponiveis = todosItens.filter(item => !idsJogados.includes(item.id));
+            embaralhar(itensDisponiveis);
+        }
+
+        function carregarProxima() {
+            if (itensDisponiveis.length === 0) {
+                mostrarFimDeJogo();
+                return;
+            }
+
+            itemAtual = itensDisponiveis.pop();
+            dicasAtualmenteVisiveis = 0;
+            dicasAbertasIndices.clear();
+
+            document.getElementById('categoria-display').innerText = `Categoria: ${itemAtual.categoria}`;
+            document.getElementById('dificuldade-display').innerText = `Dificuldade: ${itemAtual.dificuldade}`;
+            
+            const respContent = document.getElementById('resposta-content');
+            respContent.innerText = itemAtual.resposta;
+            respContent.classList.remove('show');
+            document.getElementById('resp-icon').innerText = '▼';
+            
+            // Bloqueia os botões na nova rodada
+            document.getElementById('btn-acertou').disabled = true;
+            document.getElementById('btn-errou').disabled = true;
+
+            document.getElementById('btn-acertou').classList.remove('hidden');
+            document.getElementById('btn-errou').classList.remove('hidden');
+            
+            renderizarDicas();
+            atualizarContador();
+        }
+
+        function renderizarDicas() {
+            const container = document.getElementById('dicas-container');
+            container.innerHTML = '';
+
+            itemAtual.dicas.forEach((dica, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'collapse-btn';
+                btn.innerHTML = `<span class="dica-label">Dica ${index + 1}</span> <span class="icon">▼</span>`;
+                btn.onclick = () => toggleDica(index, btn);
+
+                const content = document.createElement('div');
+                content.className = 'collapse-content';
+                content.id = `dica-content-${index}`;
+                content.innerText = dica;
+
+                container.appendChild(btn);
+                container.appendChild(content);
+            });
+        }
+
+        function toggleResposta() {
+            const content = document.getElementById('resposta-content');
+            const icon = document.getElementById('resp-icon');
+            content.classList.toggle('show');
+            icon.innerText = content.classList.contains('show') ? '▲' : '▼';
+            
+            // Libera os botões de ação se a resposta for vista
+            if (content.classList.contains('show')) {
+                document.getElementById('btn-acertou').disabled = false;
+                document.getElementById('btn-errou').disabled = false;
+            }
+        }
+
+        function toggleDica(index, btnElement) {
+            const content = document.getElementById(`dica-content-${index}`);
+            const icon = btnElement.querySelector('.icon');
+            
+            // Se está aberta, vamos FECHAR
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                icon.innerText = '▼';
+                dicasAtualmenteVisiveis--; 
+                atualizarContador();
+                return;
+            }
+
+            // Se está fechada, vamos ABRIR
+            content.classList.add('show');
+            icon.innerText = '▲';
+
+            // Marca a classe visualmente para mudar a borda e fundo
+            if (!dicasAbertasIndices.has(index)) {
+                dicasAbertasIndices.add(index);
+                btnElement.classList.add('opened-once');
+            }
+
+            dicasAtualmenteVisiveis++; 
+            atualizarContador();
+        }
+
+        function atualizarContador() {
+            document.getElementById('dicas-contador').innerText = dicasAtualmenteVisiveis;
+        }
+
+        function registrarAcerto() {
+            finalizarRodada(true);
+        }
+
+        function registrarErro() {
+            finalizarRodada(false);
+        }
+
+        function finalizarRodada(acertou) {
+            // Salva o snapshot da rodada
+            historico.push({
+                id: itemAtual.id,
+                palavra: itemAtual.resposta,
+                categoria: itemAtual.categoria,
+                dificuldade: itemAtual.dificuldade,
+                dicas: itemAtual.dicas,
+                dicasUsadas: dicasAtualmenteVisiveis,
+                indicesLidos: Array.from(dicasAbertasIndices),
+                errou: !acertou
+            });
+            
+            salvarSessao();
+            atualizarUIHistorico();
+            
+            carregarProxima();
+        }
+
+        // ================= FUNÇÕES DE HISTÓRICO ================= //
+
+        function atualizarUIHistorico() {
+            const ul = document.getElementById('historico-ul');
+            ul.innerHTML = '';
+            
+            if (historico.length === 0) {
+                ul.innerHTML = '<li style="justify-content: center; color: var(--text-muted); cursor: default;">Nenhum jogo ainda.</li>';
+                return;
+            }
+
+            // Invertemos para mostrar o mais recente no topo
+            [...historico].reverse().forEach((item, indexReverso) => {
+                const indexOriginal = historico.length - 1 - indexReverso; 
+                
+                const li = document.createElement('li');
+                const icone = item.errou ? '❌' : '✅';
+                const corBadge = item.errou ? 'var(--danger)' : 'var(--success)';
+                
+                li.onclick = () => verDetalhesHistorico(indexOriginal);
+                
+                li.innerHTML = `
+                    <span style="font-weight: 500;">${icone} ${item.palavra}</span>
+                    <span class="badge" style="background: ${corBadge};">${item.dicasUsadas} dica(s)</span>
+                `;
+                ul.appendChild(li);
+            });
+        }
+
+        function verDetalhesHistorico(index) {
+            const item = historico[index];
+
+            document.getElementById('game-content').classList.add('hidden');
+            document.getElementById('end-game').classList.add('hidden');
+            document.getElementById('history-detail').classList.remove('hidden');
+
+            // Scrolla suavemente para o topo do main (caso esteja longe por causa do histórico grande)
+            document.getElementById('game-board').scrollIntoView({ behavior: 'smooth' });
+
+            document.getElementById('hd-palavra').innerText = item.palavra;
+            document.getElementById('hd-meta').innerText = `Categoria: ${item.categoria} | Dificuldade: ${item.dificuldade}`;
+
+            const container = document.getElementById('hd-dicas-container');
+            container.innerHTML = '';
+
+            item.dicas.forEach((dica, i) => {
+                const foiLida = item.indicesLidos.includes(i);
+                
+                const btn = document.createElement('button');
+                btn.className = 'collapse-btn';
+                if (foiLida) btn.classList.add('opened-once');
+                
+                btn.innerHTML = `<span class="dica-label">Dica ${i + 1}</span> <span class="icon">▼</span>`;
+                
+                const content = document.createElement('div');
+                content.className = 'collapse-content';
+                content.id = `hd-dica-content-${i}`;
+                content.innerText = dica;
+
+                if (foiLida) {
+                    content.classList.add('show');
+                    btn.querySelector('.icon').innerText = '▲';
+                }
+
+                btn.onclick = () => {
+                    content.classList.toggle('show');
+                    btn.querySelector('.icon').innerText = content.classList.contains('show') ? '▲' : '▼';
+                };
+
+                container.appendChild(btn);
+                container.appendChild(content);
+            });
+        }
+
+        function voltarAoJogo() {
+            document.getElementById('history-detail').classList.add('hidden');
+            
+            if (jogoFinalizado) {
+                document.getElementById('end-game').classList.remove('hidden');
+            } else {
+                document.getElementById('game-content').classList.remove('hidden');
+            }
+        }
+
+        function mostrarFimDeJogo() {
+            jogoFinalizado = true;
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('game-content').classList.add('hidden');
+            document.getElementById('end-game').classList.remove('hidden');
+        }
+
+        function reiniciarJogo() {
+            if(confirm("Tem certeza que deseja apagar o histórico e recomeçar do zero?")) {
+                sessionStorage.removeItem('jogoPerfilHistorico');
+                window.location.reload();
+            }
+        }
+
+        window.onload = iniciar;
+    </script>
+</body>
+</html>
